@@ -1,0 +1,29 @@
+@media (min-width: 1200px) {
+    .container {
+        width: 600px;
+    }
+}
+
+.vertical-center {
+    min-height: 100%;  
+    min-height: 100vh; 
+    display: flex;
+    align-items: center;
+}
+
+.row {
+    padding: 5px;
+}
+
+.center-text {
+    text-align: center;
+}
+
+.pin-label {
+    position: relative;
+    top: 2px;
+}
+
+.blue {
+    color: #34495e;
+}
