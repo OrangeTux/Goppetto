@@ -14,6 +14,6 @@ func init() {
 }
 
 func Run() {
-	log.Printf("Start Goppetto on http://127.0.0.1:9999")
-	http.ListenAndServe("localhost:9999", nil)
+	log.Printf("Start Goppetto on http://127.0.0.1:9999.")
+	log.Fatal(http.ListenAndServe("localhost:9999", nil))
 }
