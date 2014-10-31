@@ -100,7 +100,12 @@
                 });
 
                 function notifyServer(pin_id, value) {
-                    socket.send(JSON.stringify({'pin_state' : {'pin_id': pin_id, 'value': value}}));
+                    socket.send(JSON.stringify({
+                        'pin_state' : {
+                            'pin_id': pin_id, 
+                            'value': value
+                        }
+                    }));
                 }
             });
         </script>

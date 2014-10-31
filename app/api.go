@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func webHandler(ws *websocket.Conn) {
+func SocketHandler(ws *websocket.Conn) {
 	var msg string
 
 	client := ws.Request().RemoteAddr
