@@ -22,11 +22,11 @@
                     <div class="col-xs-3 col-xs-offset-3">
                         <span class="pin-label">1</span>
                         <span class="pull-right">
-                            <input type="checkbox" checked data-toggle="switch" />
+                            <input type="checkbox" checked data-toggle="switch" data-id="1"/>
                         </span>
                     </div>
                     <div class="col-xs-3">
-                        <input type="checkbox" checked data-toggle="switch" />
+                        <input type="checkbox" checked data-toggle="switch" data-id="2"/>
                         <span class="pin-label pull-right">2</span>
                     </div>
                 </div>
@@ -35,11 +35,11 @@
                     <div class="col-xs-3 col-xs-offset-3">
                         <span class="pin-label">3</span>
                         <span class="pull-right">
-                            <input type="checkbox" checked data-toggle="switch" />
+                            <input type="checkbox" checked data-toggle="switch" data-id="3"/>
                         </span>
                     </div>
                     <div class="col-xs-3">
-                        <input type="checkbox" checked data-toggle="switch" />
+                        <input type="checkbox" checked data-toggle="switch" data-id="4"/>
                         <span class="pin-label pull-right">4</span>
                     </div>
                 </div>
@@ -48,11 +48,11 @@
                     <div class="col-xs-3 col-xs-offset-3">
                         <span class="pin-label">5</span>
                         <span class="pull-right">
-                            <input type="checkbox" checked data-toggle="switch" />
+                            <input type="checkbox" checked data-toggle="switch" data-id="5"/>
                         </span>
                     </div>
                     <div class="col-xs-3">
-                        <input type="checkbox" checked data-toggle="switch" />
+                        <input type="checkbox" checked data-toggle="switch" data-id="6"/>
                         <span class="pin-label pull-right">6</span>
                     </div>
                 </div>
@@ -61,11 +61,11 @@
                     <div class="col-xs-3 col-xs-offset-3">
                         <span class="pin-label">7</span>
                         <span class="pull-right">
-                            <input type="checkbox" checked data-toggle="switch" />
+                            <input type="checkbox" checked data-toggle="switch" data-id="7"/>
                         </span>
                     </div>
                     <div class="col-xs-3">
-                        <input type="checkbox" checked data-toggle="switch" />
+                        <input type="checkbox" checked data-toggle="switch" data-id="8"/>
                         <span class="pin-label pull-right">8</span>
                     </div>
                 </div>
@@ -83,7 +83,25 @@
         <script src="/static/vendor/bootstrap-switch/dist/js/bootstrap-switch.js"></script>
         <script>
             $(function() {
+                var socket = new WebSocket('ws://localhost:9999/api');
+
+                socket.onmessage = function(m) {
+                    console.log('Recevied ' + m.data + ' from server.');
+                }
+
                 $("input").bootstrapSwitch();
+
+                $(":checkbox").on('switchChange.bootstrapSwitch', function(e, state) {
+                    value = state ? 1 : 0;
+                    pin_id = $(this).data('id');
+                    console.log('Pin ' + $(this).data('id') + ' set to ' + value);
+
+                    notifyServer(pin_id, value);
+                });
+
+                function notifyServer(pin_id, value) {
+                    socket.send(JSON.stringify({'pin_state' : {'pin_id': pin_id, 'value': value}}));
+                }
             });
         </script>
     </body>
