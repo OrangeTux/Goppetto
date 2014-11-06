@@ -8,6 +8,7 @@ import (
 
 func init() {
 	http.HandleFunc("/", index)
+	http.HandleFunc("/specs", specs)
 
 	http.Handle("/api", websocket.Handler(SocketHandler))
 	fs := http.FileServer(http.Dir("static"))

@@ -16,6 +16,12 @@ func index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, template.HTML(executeTemplate(tmpl, m)))
 }
 
+func specs(w http.ResponseWriter, r *http.Request) {
+	tmpl := loadTemplate("specs")
+	m := make(map[string]string)
+	fmt.Fprint(w, template.HTML(executeTemplate(tmpl, m)))
+}
+
 func loadTemplate(tmplName string) *template.Template {
 	tmplFolder := os.Getenv("GOPATH") + "/src/github.com/OrangeTux/Goppetto/templates/"
 
