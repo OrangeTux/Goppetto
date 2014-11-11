@@ -80,34 +80,20 @@
       </div>
 
       <script type="text/javascript" src="/static/js/goppetto.js"></script>
+      <script type="text/javascript" src="/static/js/socket.js"></script>
       <script type="text/javascript" src="/static/vendor/jquery/dist/js/jquery.js"></script>
       <script type="text/javascript" src="/static/vendor/bootstrap-switch/dist/js/bootstrap-switch.js"></script>
       <script>
-        $(function() {
-          var socket = new WebSocket('ws://localhost:9999/api');
+          $(function() {
+              var ws = new WebSocket('ws://localhost:9999/api');
+          
+              $("input").bootstrapSwitch();
 
-          socket.onmessage = function(m) {
-            console.log('Recevied ' + m.data + ' from server.');
-          }
-
-          $("input").bootstrapSwitch();
-
-          $(":checkbox").on('switchChange.bootstrapSwitch', function(e, state) {
-            value = state ? 1 : 0;
-            pin_id = $(this).data('id');
-            console.log('Pin ' + $(this).data('id') + ' set to ' + value);
-
-            notifyServer(pin_id, value);
-          });
-
-          function notifyServer(pin_id, value) {
-            socket.send(JSON.stringify({
-              'pin_state' : {
-                'pin_id': pin_id, 
-                'value': value
-              }
-            }));
-          }
+              $(":checkbox").on('switchChange.bootstrapSwitch', function(e, state) {
+                  value = state ? 1 : 0;
+                  pin_id = $(this).data('id');
+                  sendPinState(ws, pin_id, value);
+              });
         });
       </script>
     </body>
