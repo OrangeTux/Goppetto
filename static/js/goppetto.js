@@ -20,6 +20,7 @@ function getPinSwitch(pin_id) {
  */
 function setPinState(pin_id, state) {
     var state = state === 1 ? true : false
+    console.log('Set pin ' + pin_id + ' to ' + state + '.');
     getPinSwitch(pin_id).bootstrapSwitch('state', state);
 }
 

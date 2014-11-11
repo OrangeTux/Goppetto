@@ -3,9 +3,8 @@ describe('An EventDispatcher', function() {
     var ed;
     
     beforeEach(function() {
-        //socket = jasmine.createSpyObj('socket', ['onmessage', 'send']);
-        socket = jasmine.createSpy('socket');
-        ed = new EventDispatcher(socket);
+        socket = jasmine.createSpyObj('socket', ['send']);
+       ed = new EventDispatcher(socket);
     });
 
     it('should be able to bind callbacks to events.', function() {
@@ -17,10 +16,10 @@ describe('An EventDispatcher', function() {
         expect(ed.callbacks['some_event']).toEqual([x, y]);
     });
 
-    xit('should be able to send events to server.', function() {
+    it('should be able to send events to server.', function() {
         ed.send("pin_state", {pin_id: 3, state: 0})
         expect(socket.send).toHaveBeenCalledWith(JSON.stringify({
-            'name': 'pin_state',
+            'event': 'pin_state',
             'data': {
                 'pin_id': 3,
                 'state': 0

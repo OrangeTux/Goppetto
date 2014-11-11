@@ -86,13 +86,18 @@
       <script>
           $(function() {
               var ws = new WebSocket('ws://localhost:9999/api');
-          
+              var ed = new EventDispatcher(ws);
+
+              ed.bind('pin_state', function(data) {
+                  setPinState(data.pin_id, data.state);
+              });
+              
               $("input").bootstrapSwitch();
 
               $(":checkbox").on('switchChange.bootstrapSwitch', function(e, state) {
                   value = state ? 1 : 0;
                   pin_id = $(this).data('id');
-                  sendPinState(ws, pin_id, value);
+                  ed.send('pin_state', {'pin_id': pin_id, 'state': value});
               });
         });
       </script>

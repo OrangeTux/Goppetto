@@ -12,7 +12,7 @@ var EventDispatcher = function(socket) {
     };
 
     this.send = function(event_name, event_data) {
-        var payload = JSON.stringify({name: event_name, data: event_data});
+        var payload = JSON.stringify({event: event_name, data: event_data});
         socket.send(payload); 
         return this;
     };
