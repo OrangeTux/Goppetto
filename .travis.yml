@@ -4,7 +4,8 @@ go:
     - 1.3
 
 before_script:
-    - npm install karma karma-jasmine@2_0 jasmine-fixture jasmine-core
+    - sudo apt-get install phantomjs
+    - npm install karma karma-jasmine@2_0 jasmine-fixture jasmine-core phantomjs karma-phantomjs-launcher
 
 script:
     - ./node_modules/karma/bin/karma start --browsers PhantomJS --single-run
