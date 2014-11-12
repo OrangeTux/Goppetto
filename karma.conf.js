@@ -15,9 +15,6 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'static/vendor/jasmine/jasmine.js',
-      'static/vendor/jasmine/jasmine-html.js',
-      'static/vendor/jasmine/boot.js',
       'static/vendor/jquery/dist/js/jquery.js',
       'static/vendor/jasmine-fixture/jasmine-fixture.min.js',
       'static/vendor/bootstrap-switch/dist/js/bootstrap-switch.js',

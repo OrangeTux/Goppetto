@@ -1,11 +1,10 @@
-language: go
+anguage: go
 
 go: 
     - 1.3
 
 before_script:
-    - npm install karma
+    - npm install karma jasmine-fixture
 
 script:
-    - karma start --single-run --browsers PhantomJS test/karma/config/unit.js
-
+    - ./node_modules/karma/bin/karma start --browsers PhantomJS --single-run
