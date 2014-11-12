@@ -3,6 +3,9 @@ anguage: go
 go: 
     - 1.3
 
+install:
+    - go get -d -v ./... && go build -v ./...
+
 before_script:
     - sudo apt-get install phantomjs
     - npm install karma karma-jasmine@2_0 jasmine-fixture jasmine-core phantomjs karma-phantomjs-launcher
