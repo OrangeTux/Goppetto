@@ -8,17 +8,16 @@ var ed EventDispatcher
 
 func init() {
 	ed = EventDispatcher{
-		messages:  make(chan string),
-		callbacks: make(map[string][]func(EventMessage) EventMessage),
+		callbacks: make(map[string][]func(*EventMessage) *EventMessage),
 	}
 }
 
 func TestBind(t *testing.T) {
-	someEvent := func(e EventMessage) (emsg EventMessage) {
+	someEvent := func(e *EventMessage) (emsg *EventMessage) {
 		return e
 	}
 
-	someOtherEvent := func(e EventMessage) (emsg EventMessage) {
+	someOtherEvent := func(e *EventMessage) (emsg *EventMessage) {
 		return e
 	}
 
@@ -31,11 +30,11 @@ func TestBind(t *testing.T) {
 }
 
 func TestDispatch(t *testing.T) {
-	msg := EventMessage{event: "some_event"}
+	msg := EventMessage{Event: "some_event"}
 	chnl := make(chan bool)
 
 	isCalled := false
-	someEvent := func(e EventMessage) (emsg EventMessage) {
+	someEvent := func(e *EventMessage) (emsg *EventMessage) {
 		isCalled = true
 		chnl <- true
 
@@ -43,14 +42,39 @@ func TestDispatch(t *testing.T) {
 	}
 
 	ed.Bind("some_event", someEvent)
-	ed.dispatch(msg)
+	ed.Dispatch(&msg)
 
-	// Wait for the callback to be called.
+	// Wait for the someEvent to be called.
 	<-chnl
 
 	if isCalled == false {
 		t.Error("Method has not been dispatched.")
 	}
+}
+
+func TestListen(t *testing.T) {
+	msg := `{"event": "some_event", "data": {"pin_id": 1, "state": 0}}`
+	isExecuted := false
+	done := make(chan bool)
+	messages := make(chan string, 1)
+
+	someEvent := func(e *EventMessage) (emsg *EventMessage) {
+		isExecuted = true
+		done <- true
+		return e
+	}
+
+	ed.Bind("some_event", someEvent)
+	go ed.Listen(messages)
+	messages <- msg
+
+	<-done
+
+	if isExecuted == false {
+		t.Error("someEvent has not been dispatched.")
+	}
+
+	close(messages)
 }
 
 // Global EventDispatcher instance
