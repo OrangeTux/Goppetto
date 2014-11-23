@@ -13,28 +13,7 @@ func init() {
 	}
 }
 
-//func TestEventsShouldBeDispatched(t *testing.T) {
-//ed := EventDispatcher{make(map[string]func(EventMessage) EventMessage)}
-//msg := EventMessage{event: "some_event"}
-
-//isCalled := false
-
-//x := func(e EventMessage) (emsg EventMessage) {
-//isCalled = true
-
-//return e
-//}
-
-//ed.callbacks["some_event"] = x
-
-//ed.dispatch(msg)
-
-//if isCalled == false {
-//t.Error("Fails")
-//}
-//}
-
-func TestBindCallback(t *testing.T) {
+func TestBind(t *testing.T) {
 	someEvent := func(e EventMessage) (emsg EventMessage) {
 		return e
 	}
@@ -51,6 +30,28 @@ func TestBindCallback(t *testing.T) {
 	}
 }
 
+func TestDispatch(t *testing.T) {
+	msg := EventMessage{event: "some_event"}
+	chnl := make(chan bool)
+
+	isCalled := false
+	someEvent := func(e EventMessage) (emsg EventMessage) {
+		isCalled = true
+		chnl <- true
+
+		return e
+	}
+
+	ed.Bind("some_event", someEvent)
+	ed.dispatch(msg)
+
+	// Wait for the callback to be called.
+	<-chnl
+
+	if isCalled == false {
+		t.Error("Method has not been dispatched.")
+	}
+}
+
 // Global EventDispatcher instance
-// TestDispatch
 // TestListen

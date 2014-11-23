@@ -22,8 +22,10 @@ func (ed EventDispatcher) Bind(e string, cb func(EventMessage) EventMessage) {
 	ed.callbacks[e] = append(ed.callbacks[e], cb)
 }
 
-func (e EventDispatcher) dispatch(msg EventMessage) {
-	for _, callback := range e.callbacks[msg.event] {
-		callback(msg)
+// Fire callbacks when event arrives. Callbacks are fired inside go routine and
+// are therefore asynchronous.
+func (e EventDispatcher) dispatch(emsg EventMessage) {
+	for _, callback := range e.callbacks[emsg.event] {
+		go callback(emsg)
 	}
 }
