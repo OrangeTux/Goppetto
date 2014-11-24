@@ -1,4 +1,4 @@
-package app
+package goppetto
 
 import (
 	"code.google.com/p/go.net/websocket"

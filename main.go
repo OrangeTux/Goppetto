@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/OrangeTux/Goppetto/app"
+	"github.com/OrangeTux/Goppetto/goppetto"
 	"log"
 )
 
@@ -10,5 +10,5 @@ func init() {
 }
 
 func main() {
-	app.Run()
+	goppetto.Run()
 }
