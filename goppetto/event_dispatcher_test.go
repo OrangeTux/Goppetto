@@ -13,11 +13,15 @@ func TestEventDispatcher(t *testing.T) {
 		done := make(chan bool)
 		messages := make(chan []byte)
 
+		defer func() {
+			close(done)
+			close(messages)
+		}()
+
 		em := EventMessage{"pin_state", make(map[string]interface{})}
 
 		ed := EventDispatcher{make(map[string][]func(*EventMessage) *EventMessage)}
 		go ed.Listen(messages)
-
 		Convey("When I bind a callback to an event", nil)
 
 		Convey("And that the EventDispatcher receives this event", func() {
@@ -67,8 +71,5 @@ func TestEventDispatcher(t *testing.T) {
 				So(i, ShouldEqual, 2)
 			})
 		})
-
-		close(done)
-		close(messages)
 	})
 }
