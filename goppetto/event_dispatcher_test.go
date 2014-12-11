@@ -67,5 +67,8 @@ func TestEventDispatcher(t *testing.T) {
 				So(i, ShouldEqual, 2)
 			})
 		})
+
+		close(done)
+		close(messages)
 	})
 }
