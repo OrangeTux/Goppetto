@@ -1,64 +1,65 @@
 package goppetto
 
 import (
+	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
-var ed EventDispatcher
-var isCalled bool
-var done = make(chan bool)
+func TestEventDispatcher(t *testing.T) {
+	Convey("Given I have a EventDispatcher", t, func() {
+		i := 0
+		done := make(chan bool)
 
-var f = func(emsg *EventMessage) *EventMessage {
-	isCalled = true
-	done <- true
+		em := EventMessage{"pin_state", make(map[string]interface{})}
 
-	return emsg
-}
+		ed := EventDispatcher{make(map[string][]func(*EventMessage) *EventMessage)}
 
-func setUp() {
-	ed = EventDispatcher{
-		callbacks: make(map[string][]func(*EventMessage) *EventMessage),
-	}
-	isCalled = false
-}
+		Convey("When I bind a callback to an event", nil)
 
-func TestBind(t *testing.T) {
-	setUp()
-	ed.Bind("some_event", f)
-	ed.Bind("some_event", f)
+		Convey("And that the EventDispatcher receives this event", func() {
+			ed.Bind("pin_state", func(e *EventMessage) *EventMessage {
+				i += 1
+				done <- true
 
-	if len(ed.callbacks["some_event"]) != 2 {
-		t.Errorf("EventDispatcher should have 2 callbacks bound to 'some_event' got %v", len(ed.callbacks["some_event"]))
-	}
-}
+				return e
+			})
 
-func TestListen(t *testing.T) {
-	setUp()
-	msg := `{"event": "some_event", "data": {"pin_id": 1, "state": 0}}`
-	messages := make(chan string, 1)
+			ed.Dispatch(&em)
 
-	ed.Bind("some_event", f)
-	go ed.Listen(messages)
-	messages <- msg
+			Convey("Then the callback must be executed.", func() {
+				<-done
+				So(i, ShouldEqual, 1)
+			})
+		})
 
-	<-done
+		Convey("When I bind multiple callbacks to an event", nil)
 
-	if isCalled == false {
-		t.Error("someEvent has not been dispatched.")
-	}
-}
+		Convey("And the EventDispatcher receives this event", func() {
+			signal := make(chan bool)
 
-func TestDispatch(t *testing.T) {
-	setUp()
-	msg := EventMessage{Event: "some_event"}
+			ed.Bind("pin_state", func(e *EventMessage) *EventMessage {
+				i += 1
+				signal <- true
+				return e
+			})
 
-	ed.Bind("some_event", f)
-	ed.Dispatch(&msg)
+			// This callback receives a value in channel `signal`. This value
+			// can only be send by the previous callback. If both callbacks
+			// where executed seqentually this construct would cause a dead
+			// lock.
+			ed.Bind("pin_state", func(e *EventMessage) *EventMessage {
+				i += 1
+				<-signal
+				done <- true
+				return e
+			})
 
-	// Wait for the someEvent to be called.
-	<-done
+			ed.Dispatch(&em)
 
-	if isCalled == false {
-		t.Error("Method has not been dispatched.")
-	}
+			Convey("Then the callbacks must be executed in parallel.", func() {
+				<-done
+				So(i, ShouldEqual, 2)
+			})
+		})
+	})
 }
