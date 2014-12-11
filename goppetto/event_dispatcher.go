@@ -80,13 +80,12 @@ func (e EventDispatcher) Dispatch(emsg *EventMessage) {
 
 // Listen on channel for incomming messages and fires bound callbacks
 // when message arrives.
-func (e EventDispatcher) Listen(messags chan string) {
-	for {
-		msg := <-messags
+func (e EventDispatcher) Listen(messages chan []byte) {
+	for msg := range messages {
 		if len(msg) > 0 {
 			em := &EventMessage{}
 
-			json.Unmarshal([]byte(msg), em)
+			json.Unmarshal(msg, em)
 			e.Dispatch(em)
 		}
 	}
