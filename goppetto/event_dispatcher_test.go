@@ -1,6 +1,7 @@
 package goppetto
 
 import (
+	"encoding/json"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
@@ -8,11 +9,14 @@ import (
 func TestEventDispatcher(t *testing.T) {
 	Convey("Given I have a EventDispatcher", t, func() {
 		i := 0
+
 		done := make(chan bool)
+		messages := make(chan []byte)
 
 		em := EventMessage{"pin_state", make(map[string]interface{})}
 
 		ed := EventDispatcher{make(map[string][]func(*EventMessage) *EventMessage)}
+		go ed.Listen(messages)
 
 		Convey("When I bind a callback to an event", nil)
 
@@ -24,7 +28,8 @@ func TestEventDispatcher(t *testing.T) {
 				return e
 			})
 
-			ed.Dispatch(&em)
+			message, _ := json.Marshal(em)
+			messages <- message
 
 			Convey("Then the callback must be executed.", func() {
 				<-done
@@ -54,7 +59,8 @@ func TestEventDispatcher(t *testing.T) {
 				return e
 			})
 
-			ed.Dispatch(&em)
+			message, _ := json.Marshal(em)
+			messages <- message
 
 			Convey("Then the callbacks must be executed in parallel.", func() {
 				<-done
