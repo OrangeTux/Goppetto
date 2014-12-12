@@ -3,8 +3,6 @@ package goppetto
 import (
 	"github.com/gorilla/websocket"
 	. "github.com/smartystreets/goconvey/convey"
-	"log"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -13,29 +11,26 @@ import (
 
 func TestSocketManager(t *testing.T) {
 
-	wsm := WebSocketManager{make(map[net.Addr]*websocket.Conn)}
+	wsm := WebSocketManager{
+		make(map[string]*websocket.Conn),
+		make([]func(*websocket.Conn) *websocket.Conn, 0),
+	}
+
 	ts := httptest.NewServer(http.HandlerFunc(wsm.ConnectionHandler))
 	defer ts.Close()
 
 	url, _ := url.Parse(ts.URL)
 	url.Scheme = "ws"
 
-	conn, _, err := websocket.DefaultDialer.Dial(url.String(), nil)
+	conn, _, _ := websocket.DefaultDialer.Dial(url.String(), nil)
 	defer conn.Close()
-
-	log.Print(conn.LocalAddr())
-
-	if err != nil {
-		log.Print(ts.URL)
-		log.Fatal(err)
-	}
 
 	Convey("Given a WebSocketManager", t, func() {
 
 		Convey("When a client connects", func() {
 
 			Convey("Then the connection must be saved.", func() {
-				So(wsm.Connections[conn.LocalAddr()], ShouldHaveSameTypeAs, conn)
+				So(wsm.Connections[conn.LocalAddr().String()], ShouldHaveSameTypeAs, conn)
 			})
 		})
 
@@ -44,16 +39,29 @@ func TestSocketManager(t *testing.T) {
 			Convey("Then the callback must be called", nil)
 		})
 
-		Convey("When a client sends a message", func() {
+		Convey("When `OnDisconnect` callback has been bound", nil)
+		Convey("And a connected client disconnects", func() {
+			done := make(chan bool)
+			f := func(conn *websocket.Conn) *websocket.Conn {
+				done <- true
+				return conn
+			}
+			wsm.OnDisconnect(f)
 
-			Convey("Then message must be processed.", nil)
+			conn.Close()
 
-		})
+			Convey("Then the `OnDisconnect` callbacks must be fired.", func() {
+				Convey("And the connection must be removed.", func() {
 
-		Convey("When a client disconnects", func() {
+					<-done
 
-			Convey("Then the connections must be flushed.", nil)
-
+					keys := make([]string, len(wsm.Connections))
+					for key := range wsm.Connections {
+						keys = append(keys, key)
+					}
+					So(conn.LocalAddr().String(), ShouldNotBeIn, keys)
+				})
+			})
 		})
 	})
 }
