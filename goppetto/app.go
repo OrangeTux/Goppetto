@@ -10,6 +10,7 @@ func init() {
 	wsm := WebSocketManager{
 		make(map[string]*websocket.Conn),
 		make([]func(*websocket.Conn) *websocket.Conn, 0),
+		make([]func([]byte, *websocket.Conn) ([]byte, *websocket.Conn), 0),
 	}
 	http.HandleFunc("/", index)
 	http.HandleFunc("/specs", specs)

@@ -14,6 +14,7 @@ var upgrader = websocket.Upgrader{
 type WebSocketManager struct {
 	Connections         map[string]*websocket.Conn
 	disconnectCallbacks []func(*websocket.Conn) *websocket.Conn
+	messageCallbacks    []func([]byte, *websocket.Conn) ([]byte, *websocket.Conn)
 }
 
 func (wsm *WebSocketManager) ConnectionHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,6 +36,10 @@ func (wsm *WebSocketManager) OnDisconnect(f func(*websocket.Conn) *websocket.Con
 	wsm.disconnectCallbacks = append(wsm.disconnectCallbacks, f)
 }
 
+func (wsm *WebSocketManager) OnMessage(f func(msg []byte, conn *websocket.Conn) ([]byte, *websocket.Conn)) {
+	wsm.messageCallbacks = append(wsm.messageCallbacks, f)
+}
+
 // Listen for message on connection.
 func (wsm *WebSocketManager) listen(conn *websocket.Conn) {
 	for {
@@ -45,7 +50,7 @@ func (wsm *WebSocketManager) listen(conn *websocket.Conn) {
 			return
 		}
 
-		log.Printf("Received %s from %s.", msg, conn.RemoteAddr())
+		wsm.message(msg, conn)
 	}
 }
 
@@ -54,7 +59,17 @@ func (wsm *WebSocketManager) listen(conn *websocket.Conn) {
 func (wsm WebSocketManager) disconnect(conn *websocket.Conn) {
 	conn.Close()
 	delete(wsm.Connections, conn.RemoteAddr().String())
+	log.Printf("%s disconnected.", conn.RemoteAddr().String())
 	for _, f := range wsm.disconnectCallbacks {
 		go f(conn)
 	}
+}
+
+func (wsm WebSocketManager) message(msg []byte, conn *websocket.Conn) ([]byte, *websocket.Conn) {
+	log.Printf("Received `%s` from %s.", msg, conn.RemoteAddr())
+	for _, f := range wsm.messageCallbacks {
+		go f(msg, conn)
+	}
+
+	return msg, conn
 }

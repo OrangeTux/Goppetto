@@ -11,9 +11,12 @@ import (
 
 func TestSocketManager(t *testing.T) {
 
+	done := make(chan bool)
+
 	wsm := WebSocketManager{
 		make(map[string]*websocket.Conn),
 		make([]func(*websocket.Conn) *websocket.Conn, 0),
+		make([]func([]byte, *websocket.Conn) ([]byte, *websocket.Conn), 0),
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(wsm.ConnectionHandler))
@@ -34,32 +37,42 @@ func TestSocketManager(t *testing.T) {
 			})
 		})
 
-		Convey("When I bind a callback on incomming messages", nil)
-		Convey("And a client sends a message", func() {
-			Convey("Then the callback must be called", nil)
+		Convey("When an `OnMessage` callback has been bound", func() {
+			wsm.OnMessage(func(msg []byte, conn *websocket.Conn) ([]byte, *websocket.Conn) {
+				done <- true
+				return msg, conn
+			})
+			Convey("And a client sends a message", func() {
+				conn.WriteMessage(websocket.TextMessage, []byte{'H', 'e', 'l', 'l', 'o'})
+				Convey("Then the callback must be called", func() {
+					<-done
+					// When test reaches to this point is has callback has been called test passed.
+					So(1, ShouldEqual, 1)
+				})
+			})
 		})
 
-		Convey("When `OnDisconnect` callback has been bound", nil)
-		Convey("And a connected client disconnects", func() {
-			done := make(chan bool)
-			f := func(conn *websocket.Conn) *websocket.Conn {
+		Convey("When an `OnDisconnect` callback has been bound", func() {
+			wsm.OnDisconnect(func(conn *websocket.Conn) *websocket.Conn {
 				done <- true
 				return conn
-			}
-			wsm.OnDisconnect(f)
+			})
 
-			conn.Close()
+			Convey("And a connected client disconnects", func() {
+				conn.Close()
 
-			Convey("Then the `OnDisconnect` callbacks must be fired.", func() {
-				Convey("And the connection must be removed.", func() {
+				Convey("Then the `OnDisconnect` callbacks must be fired.", func() {
+					Convey("And the connection must be removed.", func() {
 
-					<-done
+						<-done
 
-					keys := make([]string, len(wsm.Connections))
-					for key := range wsm.Connections {
-						keys = append(keys, key)
-					}
-					So(conn.LocalAddr().String(), ShouldNotBeIn, keys)
+						keys := make([]string, len(wsm.Connections))
+						for key := range wsm.Connections {
+							keys = append(keys, key)
+						}
+
+						So(conn.LocalAddr().String(), ShouldNotBeIn, keys)
+					})
 				})
 			})
 		})
