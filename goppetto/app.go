@@ -1,16 +1,22 @@
 package goppetto
 
 import (
-	"code.google.com/p/go.net/websocket"
+	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 )
 
 func init() {
+	wsm := WebSocketManager{
+		make(map[string]*websocket.Conn),
+		make([]func(*websocket.Conn) *websocket.Conn, 0),
+		make([]func([]byte, *websocket.Conn) ([]byte, *websocket.Conn), 0),
+	}
+
 	http.HandleFunc("/", index)
 	http.HandleFunc("/specs", specs)
 
-	http.Handle("/api", websocket.Handler(SocketHandler))
+	http.HandleFunc("/api", wsm.ConnectionHandler)
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 }
